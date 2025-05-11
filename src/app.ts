@@ -1,7 +1,5 @@
+import "./config/config";
 import express, { Request, Response } from "express";
-const app = express();
-import cors from "cors";
-import dotenv from "dotenv";
 import { getLlmResponse, streamLlmResponse } from "./helper/ai";
 import { getSystemPrompt, systemPrompts } from "./prompts/allprompts";
 import { basePrompt as reactBasePrompt } from "./default/react";
@@ -9,6 +7,7 @@ import { basePrompt as nodeBasePrompt } from "./default/node";
 import { WORK_DIR } from "./prompts/constants";
 import { connectToDataBase } from "./helper/db.Connection";
 import { SourceCode } from "./schema/source";
+import cors from "cors";
 import "./passport";
 import jwt from "jsonwebtoken";
 import {
@@ -21,13 +20,12 @@ import { RAZORPAY_ID, RAZORPAY_SECRET_KEY } from "./config/config";
 import { Subscription } from "./schema/subscription";
 import { User } from "./schema/user";
 import passport from "passport";
+connectToDataBase();
+const app = express();
+app.use(passport.initialize());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(passport.initialize());
-dotenv.config();
-connectToDataBase();
-
 
 let razorpayInstance = new Razorpay({
   key_id: RAZORPAY_ID,
@@ -69,7 +67,7 @@ app.post("/template", async (req: Request, res: Response): Promise<any> => {
   if (!validation.success) {
     return res.status(400).json({
       status: false,
-      message: "Invalid request body",
+      message: validation.error.issues[0].message,
     });
   }
   const systemPrompt = systemPrompts.checkProjectType;
@@ -112,7 +110,7 @@ app.post("/generate", async (req: Request, res: Response): Promise<any> => {
   if (!validation.success) {
     return res.status(400).json({
       status: false,
-      message: "Invalid request body",
+      message:  validation.error.issues[0].message,
     });
   }
 
@@ -136,14 +134,14 @@ app.post("/generate", async (req: Request, res: Response): Promise<any> => {
 });
 
 app.post("/source", async (req: Request, res: Response): Promise<any> => {
-  // const validation = projectSource.safeParse(req.body);
+  const validation = projectSource.safeParse(req.body);
 
-  // if (!validation.success) {
-  //   return res.status(400).json({
-  //     status: false,
-  //     message: "Invalid request body",
-  //   });
-  // }
+  if (!validation.success) {
+    return res.status(400).json({
+      status: false,
+      message: validation.error.issues[0].message,
+    });
+  }
 
   const { source, projectId } = req.body;
 
@@ -165,7 +163,7 @@ app.get(
     if (!validation.success) {
       return res.status(400).json({
         status: false,
-        message: "Invalid request body",
+        message:  validation.error.issues[0].message,
       });
     }
     const { projectId } = validation.data;
@@ -235,7 +233,7 @@ app.post("/order", async (req: Request, res: Response): Promise<any> => {
     if (!validation.success) {
       return res.status(400).json({
         status: false,
-        message: "Invalid request body",
+        message:  validation.error.issues[0].message,
       });
     }
 

@@ -3,6 +3,11 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from "./config/config";
 import { User } from "./schema/user";
 
+
+// Configure the Google strategy for use by Passport
+console.log("Google Client ID:", GOOGLE_CLIENT_ID);
+console.log("Google Client Secret:", GOOGLE_CLIENT_SECRET);
+console.log("Google Callback URL:", GOOGLE_CALLBACK_URL);
 passport.use(
     new GoogleStrategy(
         {
